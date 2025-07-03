@@ -1,63 +1,50 @@
 import React, { useState } from "react";
-import { Button, Error, Input, FormField, Label } from "../styles";
+
 
 function LoginForm({ onLogin }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [errors, setErrors] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+
 
   function handleSubmit(e) {
     e.preventDefault();
-    setIsLoading(true);
+    setErrors([]);
+
     fetch("/login", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ username, password }),
+
     }).then((r) => {
-      setIsLoading(false);
+      
       if (r.ok) {
-        r.json().then((user) => onLogin(user));
+        r.json().then(onLogin);
       } else {
-        r.json().then((err) => setErrors(err.errors));
+        r.json().then((err) => setErrors(err.error ? [err.error] : err.errors));
       }
     });
   }
 
   return (
     <form onSubmit={handleSubmit}>
-      <FormField>
-        <Label htmlFor="username">Username</Label>
-        <Input
-          type="text"
-          id="username"
-          autoComplete="off"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-        />
-      </FormField>
-      <FormField>
-        <Label htmlFor="password">Password</Label>
-        <Input
-          type="password"
-          id="password"
-          autoComplete="current-password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
-      </FormField>
-      <FormField>
-        <Button variant="fill" color="primary" type="submit">
-          {isLoading ? "Loading..." : "Login"}
-        </Button>
-      </FormField>
-      <FormField>
-        {errors.map((err) => (
-          <Error key={err}>{err}</Error>
-        ))}
-      </FormField>
+      <h2>Log In</h2>
+      <input
+        type="text"
+        value={username}
+        placeholder="Username"
+        onChange={(e) => setUsername(e.target.value)}
+      />
+      <input
+        type="password"
+        value={password}
+        placeholder="Password"
+        onChange={(e) => setPassword(e.target.value)}
+      />
+      <button type="submit">Login</button>
+      {errors.map((err, i) => (
+        <p key={i} style={{ color: "red" }}>{err}</p>
+      ))}
     </form>
   );
 }

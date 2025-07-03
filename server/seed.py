@@ -1,63 +1,52 @@
-#!/usr/bin/env python3
-
-from random import randint, choice as rc
-
-from faker import Faker
-
 from app import app
-from models import db, Recipe, User
-
-fake = Faker()
+from models import db, User, Recipe
 
 with app.app_context():
-
-    print("Deleting all records...")
+    print("Clearing database...")
     Recipe.query.delete()
     User.query.delete()
 
-    fake = Faker()
+    print("Seeding users...")
+    user1 = User(
+        username="natasha",
+        image_url="https://i.pravatar.cc/150?img=8",
+        bio="I love cooking tasty meals."
+    )
+    user1.password_hash = "password123"
 
-    print("Creating users...")
+    user2 = User(
+        username="chefmax",
+        image_url="https://i.pravatar.cc/150?img=3",
+        bio="Master of spices and flavors."
+    )
+    user2.password_hash = "secret456"
 
-    # make sure users have unique usernames
-    users = []
-    usernames = []
-
-    for i in range(20):
-        
-        username = fake.first_name()
-        while username in usernames:
-            username = fake.first_name()
-        usernames.append(username)
-
-        user = User(
-            username=username,
-            bio=fake.paragraph(nb_sentences=3),
-            image_url=fake.url(),
-        )
-
-        user.password_hash = user.username + 'password'
-
-        users.append(user)
-
-    db.session.add_all(users)
-
-    print("Creating recipes...")
-    recipes = []
-    for i in range(100):
-        instructions = fake.paragraph(nb_sentences=8)
-        
-        recipe = Recipe(
-            title=fake.sentence(),
-            instructions=instructions,
-            minutes_to_complete=randint(15,90),
-        )
-
-        recipe.user = rc(users)
-
-        recipes.append(recipe)
-
-    db.session.add_all(recipes)
-    
+    db.session.add_all([user1, user2])
     db.session.commit()
-    print("Complete.")
+
+    print("Seeding recipes...")
+    recipe1 = Recipe(
+        title="Spaghetti Carbonara",
+        instructions="Boil pasta. Cook bacon. Mix eggs and cheese. Combine all and serve hot.",
+        minutes_to_complete=25,
+        user_id=user1.id
+    )
+
+    recipe2 = Recipe(
+        title="Beef Stew",
+        instructions="Brown beef. Add onions, garlic, and carrots. Simmer for 2 hours. Season and serve hot.",
+        minutes_to_complete=120,
+        user_id=user2.id
+    )
+
+    recipe3 = Recipe(
+        title="Avocado Toast",
+        instructions="Toast bread. Mash ripe avocado. Spread on toast. Add salt, pepper, and chili flakes.",
+        minutes_to_complete=10,
+        user_id=user1.id
+    )
+
+    db.session.add_all([recipe1, recipe2, recipe3])
+    db.session.commit()
+
+    print(" Done seeding!")

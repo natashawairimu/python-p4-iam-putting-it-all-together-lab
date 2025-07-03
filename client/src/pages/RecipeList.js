@@ -1,53 +1,44 @@
-import { useEffect, useState } from "react";
-import ReactMarkdown from "react-markdown";
-import { Link } from "react-router-dom";
-import styled from "styled-components";
-import { Box, Button } from "../styles";
+import React, { useEffect, useState } from "react";
 
 function RecipeList() {
   const [recipes, setRecipes] = useState([]);
+  const [errors, setErrors] = useState([]);
 
   useEffect(() => {
     fetch("/recipes")
-      .then((r) => r.json())
-      .then(setRecipes);
+      .then((r) => {
+        if (r.ok) {
+          r.json().then(setRecipes);
+        } else {
+          r.json().then((err) => setErrors(err.errors || [err.error]));
+        }
+      });
   }, []);
 
   return (
-    <Wrapper>
-      {recipes.length > 0 ? (
-        recipes.map((recipe) => (
-          <Recipe key={recipe.id}>
-            <Box>
-              <h2>{recipe.title}</h2>
-              <p>
-                <em>Time to Complete: {recipe.minutes_to_complete} minutes</em>
-                &nbsp;·&nbsp;
-                <cite>By {recipe.user.username}</cite>
-              </p>
-              <ReactMarkdown>{recipe.instructions}</ReactMarkdown>
-            </Box>
-          </Recipe>
-        ))
+    <div>
+      <h2>Recipes</h2>
+      {errors.map((err, i) => (
+        <p key={i} style={{ color: "red" }}>{err}</p>
+      ))}
+      {recipes.length === 0 ? (
+        <p>No recipes found.</p>
       ) : (
-        <>
-          <h2>No Recipes Found</h2>
-          <Button as={Link} to="/new">
-            Make a New Recipe
-          </Button>
-        </>
+        <ul>
+          {recipes.map((recipe) => (
+            <li key={recipe.id}>
+              <h3>{recipe.title}</h3>
+              <p><strong>By:</strong> {recipe.user.username}</p>
+              <p><strong>Instructions:</strong> {recipe.instructions}</p>
+              <p><strong>Time:</strong> {recipe.minutes_to_complete} minutes</p>
+            </li>
+          ))}
+        </ul>
       )}
-    </Wrapper>
+    </div>
   );
 }
 
-const Wrapper = styled.section`
-  max-width: 800px;
-  margin: 40px auto;
-`;
 
-const Recipe = styled.article`
-  margin-bottom: 24px;
-`;
 
 export default RecipeList;

@@ -9,7 +9,7 @@ function App() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    // auto-login
+    
     fetch("/check_session").then((r) => {
       if (r.ok) {
         r.json().then((user) => setUser(user));
